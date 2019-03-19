@@ -6,14 +6,20 @@ import glob
 import pickle
 import re
 
+'''
+IEMOCAP datasets
+In total the corpus 5255 scripted 4787 improvised utterances
+'''
+
 eps = 1e-5
-emotion_list = ['hap', 'ang', 'neu', 'sad']     # happy, angry, neutral, sad
+emotion_list = ['hap', 'ang', 'sad', 'neu']     # happy, angry, neutral, sad
 
 
 def wgn(x, snr):
     snr = 10 ** (snr/10.0)
     xpower = np.sum(x**2)/len(x)
     npower = xpower / snr
+
     return np.random.randn(len(x)) * np.sqrt(npower)
 
 
@@ -115,7 +121,7 @@ def generate_label(emotion, classnum):
 
 
 def read_IEMOCAP():
-    train_num = 2928
+    train_num = 2928  # 2280
     filter_num = 40
     rootdir = '/home/ydf_micro/datasets/IEMOCAP_full_release'
     traindata1 = np.empty((train_num * 300, filter_num), dtype=np.float32)
@@ -148,8 +154,8 @@ def read_IEMOCAP():
                         if emotion in emotion_list:
                             data, time, rate = read_file(filename)
                             mel_spec = ps.logfbank(data, rate, nfilt=filter_num)
-                            delta1 = ps.delta(mel_spec, 2)
-                            delta2 = ps.delta(delta1, 2)
+                            delta1 = ps.delta(mel_spec, N=2)
+                            delta2 = ps.delta(delta1, N=2)
                             time = mel_spec.shape[0]
 
                             if sec in ['Session1', 'Session2', 'Session3', 'Session4']:
@@ -167,6 +173,11 @@ def read_IEMOCAP():
 
                                     em = generate_label(emotion, 6)
 
+                                    traindata1[train_num * 300: (train_num + 1) * 300] = part
+                                    traindata2[train_num * 300: (train_num + 1) * 300] = delta11
+                                    traindata3[train_num * 300: (train_num + 1) * 300] = delta21
+                                    train_num += 1
+
                                 else:
                                     if emotion in ['ang', 'neu', 'sad']:
                                         for i in range(2):
@@ -177,21 +188,29 @@ def read_IEMOCAP():
                                                 begin = time - 300
                                                 end = time
 
+                                            part = mel_spec[begin:end, :]
+                                            delta11 = delta1[begin:end, :]
+                                            delta21 = delta2[begin:end, :]
+
+                                            traindata1[train_num * 300: (train_num + 1) * 300] = part
+                                            traindata2[train_num * 300: (train_num + 1) * 300] = delta11
+                                            traindata3[train_num * 300: (train_num + 1) * 300] = delta21
+                                            train_num += 1
+
                                     else:
                                         frames = divmod(time-300, 100)[0] + 1
                                         for i in range(frames):
                                             begin = 100 * i
                                             end = begin + 300
 
-                                    part = mel_spec[begin:end, :]
-                                    delta11 = delta1[begin:end, :]
-                                    delta21 = delta2[begin:end, :]
+                                            part = mel_spec[begin:end, :]
+                                            delta11 = delta1[begin:end, :]
+                                            delta21 = delta2[begin:end, :]
 
-                                traindata1[train_num * 300: (train_num + 1) * 300] = part
-                                traindata2[train_num * 300: (train_num + 1) * 300] = delta11
-                                traindata3[train_num * 300: (train_num + 1) * 300] = delta21
-                                train_num += 1
-
+                                            traindata1[train_num * 300: (train_num + 1) * 300] = part
+                                            traindata2[train_num * 300: (train_num + 1) * 300] = delta11
+                                            traindata3[train_num * 300: (train_num + 1) * 300] = delta21
+                                            train_num += 1
                             else:
                                 pass
 
@@ -207,8 +226,7 @@ def read_IEMOCAP():
         mean3 = np.mean(traindata3, axis=0)
         std3 = np.std(traindata3, axis=0)
 
-
-        output_dir = '../zscore' + str(filter_num) + 'pkl'
+        output_dir = '../data_extraction/zscore.pkl'
         with open(output_dir, 'wb') as f:
             pickle.dump((mean1, std1, mean2, std2, mean3, std3), f)
 
