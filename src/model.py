@@ -26,9 +26,9 @@ FLAGS = tf.flags.FLAGS
 
 
 def load_data(in_dir):
-    f = open(in_dir, 'rb')
-    train_data, train_label, test_data, test_label, valid_data, valid_label, \
-                        Valid_label, Test_label, pernums_test, pernums_valid = pickle.load(f)
+    with open(in_dir, 'rb') as f:
+        train_data, train_label, test_data, test_label, valid_data, valid_label, \
+                            Valid_label, Test_label, pernums_test, pernums_valid = pickle.load(f)
 
     return train_data, train_label, test_data, test_label, valid_data, \
         valid_label, Valid_label, Test_label, pernums_test, pernums_valid
@@ -107,7 +107,7 @@ def train():
                     v_begin = v * FLAGS.batch_size
                     v_end = (v + 1) * FLAGS.batch_size
                     if v == valid_iter - 1:
-                        if (v_end < valid_size):
+                        if v_end < valid_size:
                             v_end = valid_size
                     loss, y_pred_valid[v_begin:v_end, :] = sess.run([cross_entropy, Ylogits],
                                                                     feed_dict={X: valid_data[v_begin:v_end],

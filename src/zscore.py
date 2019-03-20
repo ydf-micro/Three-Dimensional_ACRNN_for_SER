@@ -27,6 +27,8 @@ def read_CASIA():
     train_num = 2928
     filter_num = 40
     rootdir = '/home/ydf_micro/datasets/IEMOCAP_full_release'
+    # horizontal axis denotes the number of Mel-filter bank
+    # vertical axis denotes the time(frame) length
     traindata1 = np.empty((train_num * 300, filter_num), dtype=np.float32)
     traindata2 = np.empty((train_num * 300, filter_num), dtype=np.float32)
     traindata3 = np.empty((train_num * 300, filter_num), dtype=np.float32)
@@ -52,8 +54,8 @@ def read_CASIA():
                     file_dir = os.path.join(sub_dir, sess, '*.wav')
                     files = glob.glob(file_dir)
                     for filename in files:
-                        wavname = filename.split("/")[-1][:-4]
-                        emotion = emot_map[wavname]
+                        wavename = filename.split("/")[-1][:-4]
+                        emotion = emot_map[wavename]
                         if emotion in ['hap', 'ang', 'neu', 'sad']:
                             data, time, rate = read_file(filename)
                             mel_spec = ps.logfbank(data, rate, nfilt=filter_num)
@@ -67,12 +69,12 @@ def read_CASIA():
                                     part = mel_spec
                                     delta11 = delta1
                                     delta21 = delta2
-                                    part = np.pad(part, ((0, 300 - part.shape[0]), (0, 0)), 'constant',
-                                                  constant_values=0)
-                                    delta11 = np.pad(delta11, ((0, 300 - delta11.shape[0]), (0, 0)), 'constant',
-                                                     constant_values=0)
-                                    delta21 = np.pad(delta21, ((0, 300 - delta21.shape[0]), (0, 0)), 'constant',
-                                                     constant_values=0)
+                                    part = np.pad(part, ((0, 300 - part.shape[0]), (0, 0)),
+                                                  'constant', constant_values=0)
+                                    delta11 = np.pad(delta11, ((0, 300 - delta11.shape[0]), (0, 0)),
+                                                     'constant', constant_values=0)
+                                    delta21 = np.pad(delta21, ((0, 300 - delta21.shape[0]), (0, 0)),
+                                                     'constant', constant_values=0)
                                     traindata1[train_num * 300:(train_num + 1) * 300] = part
                                     traindata2[train_num * 300:(train_num + 1) * 300] = delta11
                                     traindata3[train_num * 300:(train_num + 1) * 300] = delta21

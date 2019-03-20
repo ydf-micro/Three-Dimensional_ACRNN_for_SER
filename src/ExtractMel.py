@@ -12,13 +12,12 @@ eps = 1e-5
 
 
 def read_file(filename):
-    file = wave.open(filename, 'r')
-    params = file.getparams()
-    nchannels, sampwidth, framerate, wav_length = params[:4]
-    str_data = file.readframes(wav_length)
-    wavedata = np.fromstring(str_data, dtype=np.short)
-    time = np.arange(0, wav_length) * (1.0 / framerate)
-    file.close()
+    with wave.open(filename, 'r') as file:
+        params = file.getparams()
+        nchannels, sampwidth, framerate, wav_length = params[:4]
+        str_data = file.readframes(wav_length)
+        wavedata = np.fromstring(str_data, dtype=np.short)
+        time = np.arange(0, wav_length) * (1.0 / framerate)
 
     return wavedata, time, framerate
 
@@ -323,10 +322,9 @@ def read_IEMOCAP():
     print(test_emt)
     print(valid_emt)
     output = '../data_extraction/IEMOCAP.pkl'
-    f = open(output, 'wb')
-    pickle.dump((Train_data, Train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label,
-                 pernums_test, pernums_valid), f)
-    f.close()
+    with open(output, 'wb') as f:
+        pickle.dump((Train_data, Train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label,
+                     pernums_test, pernums_valid), f)
 
     return
 
