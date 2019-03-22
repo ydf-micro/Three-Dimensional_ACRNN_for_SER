@@ -2,15 +2,16 @@
 
 import numpy as np
 import tensorflow as tf
-from acrnn import acrnn
+from acrnn_model import acrnn
 import pickle
 from sklearn.metrics import recall_score as recall
 from sklearn.metrics import confusion_matrix as confusion
 import os
+import time
 
 tf.flags.DEFINE_integer('num_epoch', 5000, 'The number of epoches for training.')
 tf.flags.DEFINE_integer('num_classes', 4, 'The number of emotion classes.')
-tf.flags.DEFINE_integer('batch_size', 60, 'The number of samples in each batch.')
+tf.flags.DEFINE_integer('batch_size', 64, 'The number of samples in each batch.')
 tf.flags.DEFINE_boolean('is_adam', True, 'whether to use adam optimizer.')
 tf.flags.DEFINE_float('learning_rate', 0.00001, 'learning rate of Adam optimizer')
 tf.flags.DEFINE_float('dropout_keep_prob', 1, 'the prob of every unit keep in dropout layer')
@@ -18,7 +19,7 @@ tf.flags.DEFINE_integer('image_height', 300, 'image height')
 tf.flags.DEFINE_integer('image_width', 40, 'image width')
 tf.flags.DEFINE_integer('image_channel', 3, 'image channels as input')
 
-tf.flags.DEFINE_string('traindata_path', '../data_extraction/IEMOCAP.pkl', 'total dataset includes training set')
+tf.flags.DEFINE_string('traindata_path', '../data/IEMOCAP.pkl', 'total dataset includes training set')
 tf.flags.DEFINE_string('checkpoint', '../checkpoints/', 'the checkpoint dir')
 tf.flags.DEFINE_string('model_name', 'model.ckpt', 'model name')
 
@@ -36,12 +37,7 @@ def load_data(in_dir):
 
 def dense_to_one_hot(labels_dense, num_classes):
     """Convert class labels from scalars to one-hot vectors."""
-    num_labels = labels_dense.shape[0]
-    index_offset = np.arange(num_labels) * num_classes
-    labels_one_hot = np.zeros((num_labels, num_classes))
-    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
-
-    return labels_one_hot
+    return np.eye(num_classes)[labels_dense.reshape(-1)]
 
 
 def train():
@@ -66,7 +62,7 @@ def train():
     lr = tf.placeholder(tf.float32)
     keep_prob = tf.placeholder(tf.float32)
     Ylogits = acrnn(X, is_training=is_training, dropout_keep_prob=keep_prob)
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=Y, logits=Ylogits)
+    cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=Ylogits)
     cost = tf.reduce_mean(cross_entropy)
     var_trainable_op = tf.trainable_variables()
     if FLAGS.is_adam:
@@ -141,4 +137,7 @@ def train():
 
 
 if __name__ == '__main__':
+    start = time.time()
     train()
+    end = time.time()
+    print('所用时间:{:.2f}min'.format((end - start) / 60))

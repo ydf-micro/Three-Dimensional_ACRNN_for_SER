@@ -40,31 +40,37 @@ def acrnn(inputs, num_classes=4,
           time_step=150,
           F1=64,
           dropout_keep_prob=1):
+    # shape = [filter_height, filter_width, in_channels, out_channels]
     layer1_filter = tf.get_variable('layer1_filter', shape=[5, 3, 3, L1], dtype=tf.float32,
                                     initializer=tf.truncated_normal_initializer(stddev=0.1))
     layer1_bias = tf.get_variable('layer1_bias', shape=[L1], dtype=tf.float32,
                                   initializer=tf.constant_initializer(0.1))
     layer1_stride = [1, 1, 1, 1]
+
     layer2_filter = tf.get_variable('layer2_filter', shape=[5, 3, L1, L2], dtype=tf.float32,
                                     initializer=tf.truncated_normal_initializer(stddev=0.1))
     layer2_bias = tf.get_variable('layer2_bias', shape=[L2], dtype=tf.float32,
                                   initializer=tf.constant_initializer(0.1))
     layer2_stride = [1, 1, 1, 1]
+
     layer3_filter = tf.get_variable('layer3_filter', shape=[5, 3, L2, L2], dtype=tf.float32,
                                     initializer=tf.truncated_normal_initializer(stddev=0.1))
     layer3_bias = tf.get_variable('layer3_bias', shape=[L2], dtype=tf.float32,
                                   initializer=tf.constant_initializer(0.1))
     layer3_stride = [1, 1, 1, 1]
+
     layer4_filter = tf.get_variable('layer4_filter', shape=[5, 3, L2, L2], dtype=tf.float32,
                                     initializer=tf.truncated_normal_initializer(stddev=0.1))
     layer4_bias = tf.get_variable('layer4_bias', shape=[L2], dtype=tf.float32,
                                   initializer=tf.constant_initializer(0.1))
     layer4_stride = [1, 1, 1, 1]
+
     layer5_filter = tf.get_variable('layer5_filter', shape=[5, 3, L2, L2], dtype=tf.float32,
                                     initializer=tf.truncated_normal_initializer(stddev=0.1))
     layer5_bias = tf.get_variable('layer5_bias', shape=[L2], dtype=tf.float32,
                                   initializer=tf.constant_initializer(0.1))
     layer5_stride = [1, 1, 1, 1]
+
     layer6_filter = tf.get_variable('layer6_filter', shape=[5, 3, L2, L2], dtype=tf.float32,
                                     initializer=tf.truncated_normal_initializer(stddev=0.1))
     layer6_bias = tf.get_variable('layer6_bias', shape=[L2], dtype=tf.float32,
@@ -127,9 +133,9 @@ def acrnn(inputs, num_classes=4,
 
     # Define lstm cells with tensorflow
     # Forward direction cell
-    gru_fw_cell1 = tf.contrib.rnn.BasicLSTMCell(cell_units, forget_bias=1.0)
+    gru_fw_cell1 = tf.nn.rnn_cell.LSTMCell(cell_units, forget_bias=1.0, name='basic_lstm_cell')
     # Backward direction cell
-    gru_bw_cell1 = tf.contrib.rnn.BasicLSTMCell(cell_units, forget_bias=1.0)
+    gru_bw_cell1 = tf.nn.rnn_cell.LSTMCell(cell_units, forget_bias=1.0, name='basic_lstm_cell')
 
     # Now we feed `layer_3` into the LSTM BRNN cell and obtain the LSTM BRNN output.
     outputs1, output_states1 = tf.nn.bidirectional_dynamic_rnn(cell_fw=gru_fw_cell1,

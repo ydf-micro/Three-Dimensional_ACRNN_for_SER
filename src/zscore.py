@@ -56,15 +56,19 @@ def read_CASIA():
                     for filename in files:
                         wavename = filename.split("/")[-1][:-4]
                         emotion = emot_map[wavename]
-                        if emotion in ['hap', 'ang', 'neu', 'sad']:
+                        if emotion in ['hap', 'ang', 'neu', 'sad']:   # 只考虑四种情感
                             data, time, rate = read_file(filename)
                             mel_spec = ps.logfbank(data, rate, nfilt=filter_num)
                             delta1 = ps.delta(mel_spec, 2)
                             delta2 = ps.delta(delta1, 2)
                              
                             time = mel_spec.shape[0]
+                            # eight speakers are selected as the training data and one speaker
+                            # is selected as the validation data, while the remaining one speaker
+                            # is used as the test data
                             if speaker in ['Session1', 'Session2', 'Session3', 'Session4']:
                                 # training set
+                                # split the speech signal into equal_length segments of 3s
                                 if time <= 300:
                                     part = mel_spec
                                     delta11 = delta1
@@ -83,7 +87,7 @@ def read_CASIA():
                                 else:
 
                                     if emotion in ['ang', 'neu', 'sad']:
-
+                                        # 当time超过300的时候，截取了前300和后300frames
                                         for i in range(2):
                                             if i == 0:
                                                 begin = 0
@@ -101,6 +105,7 @@ def read_CASIA():
                                             train_num += 1
                                     else:
                                         frames = divmod(time - 300, 100)[0] + 1
+                                        # 100frame位移，300frame大小
                                         for i in range(frames):
                                             begin = 100 * i
                                             end = begin + 300
@@ -118,15 +123,19 @@ def read_CASIA():
                         else:
                             pass
 
-        mean1 = np.mean(traindata1, axis=0)  # axis=0纵轴方向求均值
-        std1 = np.std(traindata1, axis=0)
-        mean2 = np.mean(traindata2, axis=0)  # axis=0纵轴方向求均值
-        std2 = np.std(traindata2, axis=0)
-        mean3 = np.mean(traindata3, axis=0)  # axis=0纵轴方向求均值
-        std3 = np.std(traindata3, axis=0)
-        output = '../data_extraction/zscore.pkl'
-        with open(output, 'wb') as f:
-            pickle.dump((mean1, std1, mean2, std2, mean3, std3), f)
+    mean1 = np.mean(traindata1, axis=0)  # axis=0纵轴方向求均值
+    std1 = np.std(traindata1, axis=0)
+    mean2 = np.mean(traindata2, axis=0)  # axis=0纵轴方向求均值
+    std2 = np.std(traindata2, axis=0)
+    mean3 = np.mean(traindata3, axis=0)  # axis=0纵轴方向求均值
+    std3 = np.std(traindata3, axis=0)
+
+    print(mean1)
+    print(std1)
+
+    # output = '../data_extraction/zscore.pkl'
+    # with open(output, 'wb') as f:
+    #     pickle.dump((mean1, std1, mean2, std2, mean3, std3), f)
 
     return
 

@@ -55,7 +55,7 @@ def attention(inputs, attention_size, time_major=False, return_alphas=False):
 
     if time_major:
         # (T,B,D) => (B,T,D)
-        inputs = tf.array_ops.transpose(inputs, [1, 0, 2])
+        inputs = tf.transpose(inputs, [1, 0, 2])
 
     hidden_size = inputs.shape[2].value  # D value - hidden size of the RNN layer
 
@@ -66,8 +66,8 @@ def attention(inputs, attention_size, time_major=False, return_alphas=False):
 
     # Applying fully connected layer with non-linear activation to each of the B*T timestamps;
     #  the shape of `v` is (B,T,D)*(D,A)=(B,T,A), where A=attention_size
-    # v = tf.tanh(tf.tensordot(inputs, W_omega, axes=1) + b_omega)
-    v = tf.sigmoid(tf.tensordot(inputs, W_omega, axes=1) + b_omega)
+    v = tf.tanh(tf.tensordot(inputs, W_omega, axes=1) + b_omega)
+    # v = tf.sigmoid(tf.tensordot(inputs, W_omega, axes=1) + b_omega)
     # For each of the timestamps its vector of size A from `v` is reduced with `u` vector
     vu = tf.tensordot(v, u_omega, axes=1)  # (B,T) shape
     alphas = tf.nn.softmax(vu)  # (B,T) shape also

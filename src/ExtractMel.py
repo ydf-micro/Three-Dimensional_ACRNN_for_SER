@@ -8,8 +8,6 @@ import glob
 import pickle
 import re
 
-eps = 1e-5
-
 
 def read_file(filename):
     with wave.open(filename, 'r') as file:
@@ -32,10 +30,6 @@ def generate_label(emotion):
         label = 2
     elif emotion == 'neu':
         label = 3
-    elif emotion == 'fear':
-        label = 4
-    else:
-        label = 5
 
     return label
 
@@ -55,8 +49,10 @@ def read_IEMOCAP():
     valid_num = 436
     train_num = 2928
     filter_num = 40
+
     pernums_test = np.arange(tnum)  # remember each utterance contain how many segments
     pernums_valid = np.arange(vnum)
+
     rootdir = '/home/ydf_micro/datasets/IEMOCAP_full_release'
 
     mean1, std1, mean2, std2, mean3, std3 = load_data()
@@ -67,11 +63,15 @@ def read_IEMOCAP():
     neunum = 1262  # 3
     sadnum = 799  # 1
     pernum = 300  # np.min([hapnum,angnum,sadnum,neunum])
+
+    # label
     train_label = np.empty((train_num, 1), dtype=np.int8)
     test_label = np.empty((tnum, 1), dtype=np.int8)
     valid_label = np.empty((vnum, 1), dtype=np.int8)
+
     Test_label = np.empty((test_num, 1), dtype=np.int8)
     Valid_label = np.empty((valid_num, 1), dtype=np.int8)
+
     train_data = np.empty((train_num, 300, filter_num, 3), dtype=np.float32)
     test_data = np.empty((test_num, 300, filter_num, 3), dtype=np.float32)
     valid_data = np.empty((valid_num, 300, filter_num, 3), dtype=np.float32)
@@ -132,7 +132,7 @@ def read_IEMOCAP():
 
                                     em = generate_label(emotion)
                                     train_label[train_num] = em
-                                    train_emt[emotion] = train_emt[emotion] + 1
+                                    train_emt[emotion] += 1
                                     train_num += 1
 
                                 else:
@@ -155,7 +155,7 @@ def read_IEMOCAP():
 
                                             em = generate_label(emotion)
                                             train_label[train_num] = em
-                                            train_emt[emotion] = train_emt[emotion] + 1
+                                            train_emt[emotion] += 1
                                             train_num += 1
                                     else:
                                         frames = divmod(time - 300, 100)[0] + 1
@@ -170,7 +170,7 @@ def read_IEMOCAP():
                                             train_data[train_num, :, :, 2] = (delta21 - mean3) / (std3 + eps)
                                             em = generate_label(emotion)
                                             train_label[train_num] = em
-                                            train_emt[emotion] = train_emt[emotion] + 1
+                                            train_emt[emotion] += 1
                                             train_num += 1
 
                             else:
@@ -262,69 +262,82 @@ def read_IEMOCAP():
                         else:
                             pass
 
-    hap_index = np.arange(hapnum)
-    neu_index = np.arange(neunum)
-    sad_index = np.arange(sadnum)
-    ang_index = np.arange(angnum)
+    print(train_data)
+    print(test_data)
+    print(valid_data)
 
-    h2 = 0
-    a0 = 0
-    n3 = 0
-    s1 = 0
+    # hap_index = np.arange(hapnum)
+    # neu_index = np.arange(neunum)
+    # sad_index = np.arange(sadnum)
+    # ang_index = np.arange(angnum)
+    #
+    # h2 = 0
+    # a0 = 0
+    # n3 = 0
+    # s1 = 0
+    #
+    # for l in range(train_num):
+    #     if train_label[l] == 0:
+    #         ang_index[a0] = l
+    #         a0 = a0 + 1
+    #     elif train_label[l] == 1:
+    #         sad_index[s1] = l
+    #         s1 = s1 + 1
+    #     elif train_label[l] == 2:
+    #         hap_index[h2] = l
+    #         h2 = h2 + 1
+    #     else:
+    #         neu_index[n3] = l
+    #         n3 = n3 + 1
+    #
+    # np.random.shuffle(neu_index)
+    # np.random.shuffle(hap_index)
+    # np.random.shuffle(sad_index)
+    # np.random.shuffle(ang_index)
+    #
+    # hap_data = train_data[hap_index[0:pernum]].copy()
+    # hap_label = train_label[hap_index[0:pernum]].copy()
+    # ang_data = train_data[ang_index[0:pernum]].copy()
+    # ang_label = train_label[ang_index[0:pernum]].copy()
+    # sad_data = train_data[sad_index[0:pernum]].copy()
+    # sad_label = train_label[sad_index[0:pernum]].copy()
+    # neu_data = train_data[neu_index[0:pernum]].copy()
+    # neu_label = train_label[neu_index[0:pernum]].copy()
+    # train_num = 4*pernum
+    #
+    # Train_label = np.empty((train_num, 1), dtype=np.int8)
+    # Train_data = np.empty((train_num, 300, filter_num, 3), dtype=np.float32)
+    # Train_data[0:pernum] = hap_data
+    # Train_label[0:pernum] = hap_label
+    # Train_data[pernum:2 * pernum] = sad_data
+    # Train_label[pernum:2 * pernum] = sad_label
+    # Train_data[2 * pernum:3 * pernum] = neu_data
+    # Train_label[2 * pernum:3 * pernum] = neu_label
+    # Train_data[3 * pernum:4 * pernum] = ang_data
+    # Train_label[3 * pernum:4 * pernum] = ang_label
+    #
+    # arr = np.arange(train_num)
+    # np.random.shuffle(arr)
+    # Train_data = Train_data[arr[0:]]
+    # Train_label = Train_label[arr[0:]]
+    #
+    # print(train_label.shape)
+    # print(train_emt)
+    # print(test_emt)
+    # print(valid_emt)
 
-    for l in range(train_num):
-        if train_label[l] == 0:
-            ang_index[a0] = l
-            a0 = a0 + 1
-        elif train_label[l] == 1:
-            sad_index[s1] = l
-            s1 = s1 + 1
-        elif train_label[l] == 2:
-            hap_index[h2] = l
-            h2 = h2 + 1
-        else:
-            neu_index[n3] = l
-            n3 = n3 + 1
-
-    np.random.shuffle(neu_index)
-    np.random.shuffle(hap_index)
-    np.random.shuffle(sad_index)
-    np.random.shuffle(ang_index)
-
-    hap_data = train_data[hap_index[0:pernum]].copy()
-    hap_label = train_label[hap_index[0:pernum]].copy()
-    ang_data = train_data[ang_index[0:pernum]].copy()
-    ang_label = train_label[ang_index[0:pernum]].copy()
-    sad_data = train_data[sad_index[0:pernum]].copy()
-    sad_label = train_label[sad_index[0:pernum]].copy()
-    neu_data = train_data[neu_index[0:pernum]].copy()
-    neu_label = train_label[neu_index[0:pernum]].copy()
-    train_num = 4*pernum
-
-    Train_label = np.empty((train_num, 1), dtype=np.int8)
-    Train_data = np.empty((train_num, 300, filter_num, 3), dtype=np.float32)
-    Train_data[0:pernum] = hap_data
-    Train_label[0:pernum] = hap_label
-    Train_data[pernum:2 * pernum] = sad_data
-    Train_label[pernum:2 * pernum] = sad_label
-    Train_data[2 * pernum:3 * pernum] = neu_data
-    Train_label[2 * pernum:3 * pernum] = neu_label
-    Train_data[3 * pernum:4 * pernum] = ang_data
-    Train_label[3 * pernum:4 * pernum] = ang_label
-
-    arr = np.arange(train_num)
-    np.random.shuffle(arr)
-    Train_data = Train_data[arr[0:]]
-    Train_label = Train_label[arr[0:]]
-
-    print(train_label.shape)
-    print(train_emt)
-    print(test_emt)
-    print(valid_emt)
-    output = '../data_extraction/IEMOCAP.pkl'
-    with open(output, 'wb') as f:
-        pickle.dump((Train_data, Train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label,
-                     pernums_test, pernums_valid), f)
+    # # print(Train_data.shape, Train_label.shape)
+    # # print(test_data.shape, test_label.shape)
+    # # print(valid_data.shape, valid_label.shape)
+    # # print(Valid_label.shape, Test_label.shape)
+    # # print(pernums_test.shape, pernums_valid.shape)
+    #
+    # print(Train_data)
+    #
+    # output = '../data_extraction/IEMOCAP.pkl'
+    # with open(output, 'wb') as f:
+    #     pickle.dump((Train_data, Train_label, test_data, test_label, valid_data, valid_label, Valid_label, Test_label,
+    #                  pernums_test, pernums_valid), f)
 
     return
 
